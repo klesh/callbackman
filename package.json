@@ -1,0 +1,18 @@
+{
+  "scripts": {
+    "start": "node index.js",
+    "dev": "supervisor index.js",
+    "post-json": "curl -XPOST localhost:3000/api/callback -H 'Content-Type: application/json' -d '{\"hello\":\"wolrd\",\"foo\":\"bar\"}'",
+    "post-form": "curl -XPOST localhost:3000/api/callback -d 'hello=world' -d 'foo=bar'"
+  },
+  "dependencies": {
+    "koa": "^2.10.0",
+    "koa-bodyparser": "^4.2.1",
+    "koa-morgan": "^1.0.1",
+    "koa-static": "^5.0.0",
+    "socket.io": "^2.3.0"
+  },
+  "devDependencies": {
+    "supervisor": "^0.12.0"
+  }
+}

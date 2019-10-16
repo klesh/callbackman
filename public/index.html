@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Callbackman</title>
+  <script src="https://cdn.bootcss.com/vue/2.6.10/vue.js"></script>
+  <link href="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.slim.min.js"></script>
+  <script src="https://cdn.bootcss.com/popper.js/1.15.0/umd/popper.min.js"></script>
+  <script src="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <script src="https://cdn.bootcss.com/moment.js/2.24.0/moment.min.js"></script>
+  <link href="https://cdn.bootcss.com/font-awesome/5.10.2/css/all.min.css" rel="stylesheet">
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+  html, body {
+    font-size: 12pt;
+    font-family: monospace;
+    margin: 0;
+    padding: 0;
+  }
+
+  #app {
+    padding: 10px;
+  }
+
+  .col {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .list-group-item {
+    cursor: pointer;
+    font-size: 9pt;
+  }
+
+  h3 {
+    margin-top: 20px
+  }
+
+  .toast {
+    position: absolute;
+    top: 100px;
+    left: calc(50% - 150px);
+    z-index: 200;
+    min-width: 300px;
+    min-height: 80px;
+  }
+  </style>
+</head>
+<body>
+  <div id="app" class="container-fluid">
+
+    <div class="input-group" style="z-index:100">
+      <div class="input-group-prepend">
+        <span class="input-group-text">Callback URL</span>
+      </div>
+      <input type="text" class="form-control" placeholder="http://" readonly :value="callbackUrl" ref="callbackUrl">
+      <div class="input-group-append">
+        <button type="button" class="btn btn-primary" @click="copyCallbackUrl">Copy</button>
+        <button type="button" class="btn btn-secondary" :class="{active: isShowResponsePanel}" @click="isShowResponsePanel = !isShowResponsePanel">Response</button>
+      </div>
+    </div>
+    <div class="card" style="margin: 0 10px; margin-top: -3px" v-if="isShowResponsePanel">
+      <div class="card-body">
+        <h5 class="card-title">Response Setting</h5>
+        <form @submit.prevent="setResponse">
+          <div class="form-row">
+            <div class="form-group col-sm-6">
+              <label for="response-status">Status Code</label>
+              <input type="number" step="1" class="form-control" placeholder="200" required v-model.number="response.status">
+            </div>
+            <div class="form-group col-sm-6">
+              <label for="response-status">Content Type</label>
+              <input type="text" class="form-control" placeholder="text/plain" required v-model="response.type">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-sm-6">
+              <label for="response-status">Headers</label>
+              <textarea class="form-control" rows="3" placeholder="Date: Wed, 16 Oct 2019 04:07:23 GMT
+Server: nginx" v-model="response.headers"></textarea>
+            </div>
+            <div class="form-group col-sm-6">
+              <label for="response-status">Body</label>
+              <textarea class="form-control" rows="3" placeholder="ok" v-model="response.body"></textarea>
+            </div>
+          </div>
+          <button class="btn btn-primary" :disabled="isLoading">
+            <i v-if="isLoading" class="fas fa-spinner fa-spin"></i>
+            <span>Submit</span>
+          </button>
+        </form>
+      </div>
+    </div>
+    <div class="container-fluid mt-3">
+      <h2>Requests</h2>
+      <hr>
+      <div v-if="history.length" class="row">
+        <div class="col col-sm-3">
+          <ul class="list-group">
+            <li
+              class="list-group-item"
+              v-for="(item, index) in history"
+              :class="{active: index === activeIndex}"
+              @click="activeIndex = index"
+              >
+              {{item.timestamp | datetime}} {{item.method}} {{item.url}}</li>
+          </ul>
+        </div>
+        <div class="col col-sm-9" v-if="activeItem">
+          <h2>[{{activeItem.timestamp | datetime}}] {{activeItem.method}} {{activeItem.url}}</h2>
+          <h3>Headers</h3>
+          <div class="card">
+            <div class="card-body">
+              <pre>{{activeHeaders}}</pre>
+            </div>
+          </div>
+          <h3>
+            Body
+            <div class="btn-group btn-group-sm">
+              <button type="button" class="btn" :class="prettyMode ? 'btn-primary' : 'btn-outline-primary'" @click="prettyMode = true">Prettified</button>
+              <button type="button" class="btn" :class="prettyMode ? 'btn-outline-primary' : 'btn-primary'" @click="prettyMode = false">Raw</button>
+            </div>
+          </h3>
+          <div class="card">
+            <div class="card-body">
+              <pre v-if="!prettyMode">{{activeItem.rawBody}}</pre>
+              <pre v-else-if="activeItem.type === 'application/json'">{{JSON.stringify(activeItem.body, null, 2)}}</pre>
+              <table v-else-if="activeItem.type === 'application/x-www-form-urlencoded'" class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Field</th>
+                    <th scope="col">Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(field, value) in activeItem.body">
+                    <th scope="row">{{field}}</th>
+                    <td>{{value}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-else>
+        <h1 style="text-align: center; margin-top: 100px; color: #aaa">
+          no data
+        </h1>
+      </div>
+    </div>
+
+    <div ref='toast' data-delay="10000" class="toast">
+      <div class="toast-header text-light" :class="toastTitleBg">{{toastData.title}}</div>
+      <div class="toast-body">
+        {{toastData.message}}
+      </div>
+    </div>
+  </div>
+  <script>
+    const app = new Vue({
+      el: '#app',
+      filters: {
+        datetime(value) {
+          return moment(value).format('YYYY-MM-DD HH:mm:ss')
+        }
+      },
+      data: {
+        socket: null,
+        history: [],
+        activeIndex: 0,
+        isShowResponsePanel: false,
+        response: {
+          status: 200,
+          type: 'text/plain',
+          headers: '',
+          body: 'ok'
+        },
+        isLoading: false,
+        toastData: {
+          type: null,
+          title: null,
+          message: null,
+        },
+        prettyMode: false
+      },
+      computed: {
+        callbackUrl() {
+          return `${location.protocol}//${location.host}/api/callback`;
+        },
+        activeItem() {
+          return this.history[this.activeIndex];
+        },
+        activeHeaders() {
+          const { activeItem } = this;
+          if (!activeItem) return;
+          let text = '';
+          for (let header in activeItem.headers) {
+            text += `\n${header}: ${activeItem.headers[header]}`;
+          }
+          return text;
+        },
+        toastTitleBg() {
+          if (this.toastData.type === 'success')
+            return 'bg-success';
+          else if (this.toastData.type === 'error')
+            return 'bg-danger';
+        }
+      },
+      async mounted() {
+        this.socket = io();
+        this.socket.on('callback', item => {
+          this.history.unshift(item);
+          this.activeIndex = 0;
+        });
+        this.isLoading = true;
+        const res = await fetch('/api/response');
+        this.response = await res.json();
+        this.isLoading = false;
+      },
+      methods: {
+        copyCallbackUrl() {
+          const {callbackUrl} = this.$refs;
+          callbackUrl.select();
+          callbackUrl.setSelectionRange(0, 999999);
+          document.execCommand('copy');
+        },
+        setResponse() {
+          this.isLoading = true;
+          fetch('/api/response', {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(this.response),
+          }).then(() => {
+            this.isLoading = false;
+            this.toast({type: 'success', title: 'Update Response', message: 'Success'});
+          }, () => {
+            this.isLoading = false;
+            this.toast({type: 'error', title: 'Update Response', message: 'Failed'});
+          });
+        },
+        toast(toastData) {
+          this.toastData = toastData;
+          const {toast} = this.$refs;
+          $(toast).toast('show');
+        }
+      }
+    });
+  </script>
+</body>
+</html>
