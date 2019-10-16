@@ -1,4 +1,24 @@
 {
+  "name": "callbackman",
+  "version": "1.0.0",
+  "description": "A develop tool to help you observe what is being sent to your server",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/klesh/callbackman.git"
+  },
+  "keywords": [
+    "postman",
+    "callbackman",
+    "developer",
+    "http"
+  ],
+  "author": "Klesh Wong",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/klesh/callbackman/issues"
+  },
+  "homepage": "https://github.com/klesh/callbackman#readme",
   "scripts": {
     "start": "node index.js",
     "dev": "supervisor index.js",
