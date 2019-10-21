@@ -25,6 +25,9 @@
     "post-json": "curl -XPOST localhost:3000/api/callback -H 'Content-Type: application/json' -d '{\"hello\":\"wolrd\",\"foo\":\"bar\"}'",
     "post-form": "curl -XPOST localhost:3000/api/callback -d 'hello=world' -d 'foo=bar'"
   },
+  "bin": {
+    "callbackman": "./callbackman"
+  },
   "dependencies": {
     "koa": "^2.10.0",
     "koa-bodyparser": "^4.2.1",

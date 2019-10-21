@@ -64,4 +64,8 @@ app.use(async ({request, response}) => {
   }
 });
 
-server.listen(3000);
+
+const port = process.env.PORT || 3000;
+const host = process.env.HOST || 'localhost';
+
+server.listen({port, host}, () => console.log(`listening on http://${host}:${port}`));

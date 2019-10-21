@@ -1,0 +1,25 @@
+#!/bin/bash
+
+helpFunction()
+{
+   echo ""
+   echo "Usage: $0 -p port -H host"
+   echo -e "\t-p Server port"
+   echo -e "\t-H Server host name"
+   exit 1
+}
+
+PORT=3000
+HOST=localhost
+
+while getopts "p:H:h:" opt
+do
+   case "$opt" in
+      p ) PORT="$OPTARG" ;;
+      H ) HOST="$OPTARG" ;;
+      h ) helpFunction ;;
+      ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
+   esac
+done
+
+node index.js
