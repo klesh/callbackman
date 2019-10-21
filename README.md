@@ -33,7 +33,7 @@ Requested URL/Headers/Body should show on webpage of Step2 automaticall.
 
 # Using npm package:
 
-$$
+```bash
 $ yarn global add callbackman
 $ callbackman -p 3000 -H 127.0.0.1
-$$
+```
