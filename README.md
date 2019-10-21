@@ -3,7 +3,7 @@
 A develop tool to help you observe what is being sent to your server. Kinda like postman on server side for developer
 
 
-# Usage
+# Using Docker
 
 ## Step 1: start up server daemon
 
@@ -29,3 +29,11 @@ $ curl -XPOST localhost:3000/callback?hello -H 'Content-Type: application/json' 
 
 Requested URL/Headers/Body should show on webpage of Step2 automaticall.
 ![](https://github.com/klesh/callbackman/raw/master/public/example.png)
+
+
+# Using npm package:
+
+$$
+$ yarn global add callbackman
+$ callbackman -p 3000 -H 127.0.0.1
+$$
