@@ -1,7 +1,7 @@
 {
   "name": "callbackman",
   "version": "1.0.0",
-  "description": "A develop tool to help you observe what is being sent to your server",
+  "description": "A develop tool to help you observe what is being sent to your server. Kinda like postman on server side for developer",
   "main": "index.js",
   "repository": {
     "type": "git",
@@ -11,7 +11,8 @@
     "postman",
     "callbackman",
     "developer",
-    "http"
+    "http",
+    "server side"
   ],
   "author": "Klesh Wong",
   "license": "MIT",

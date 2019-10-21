@@ -1,6 +1,6 @@
 # Introduction
 
-A developer tool help you observe what is being sent to your server
+A develop tool to help you observe what is being sent to your server. Kinda like postman on server side for developer
 
 
 # Usage
